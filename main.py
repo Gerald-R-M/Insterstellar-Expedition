@@ -140,8 +140,8 @@ class Player(Ship):
 class Enemy(Ship):
     COLOR_MAP = {
                 "red": (RED_SPACE_SHIP, RED_LASER),
-                "purple": (BLUE_SPACE_SHIP, PURPLE_LASER),
-                "blue": (PURPLE_SPACE_SHIP, BLUE_LASER)
+                "purple": (PURPLE_SPACE_SHIP, PURPLE_LASER),
+                "blue": (BLUE_SPACE_SHIP, BLUE_LASER)
                 }
 
     def __init__(self, x, y, color, health=100):
@@ -229,7 +229,7 @@ def main():
             level += 1
             wave_length += 5
             for i in range(wave_length):
-                enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "blue", "purple"]))
+                enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "purple", "blue"]))
                 enemies.append(enemy)
 
         for event in pygame.event.get():
