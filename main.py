@@ -17,7 +17,6 @@ mixer.init()
 
 pygame.font.init()
 
-
 WIDTH = 750
 HEIGHT = 750
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -40,16 +39,19 @@ YELLOW_LASER = pygame.image.load(os.path.join("assets", "yellow_laser.png"))
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background.png")), (WIDTH, HEIGHT))
 
-#Audio
-menuMusic = pygame.mixer.Sound("Main_Menu.ogg")
+# Audio
+playerlaserSFX = pygame.mixer.Sound("assets/Player_Laser.ogg")
+enemylaserSFX = pygame.mixer.Sound("assets/Enemy_Laser.ogg")
+gameOverSFX = pygame.mixer.Sound("assets/Game_Over.ogg")
 
-#Colors
+# Colors
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
-PURPLE = (230,230,250)
-YELLOW = (255,255,0)
+PURPLE = (230, 230, 250)
+YELLOW = (255, 255, 0)
+
 
 class Laser:
     def __init__(self, x, y, img):
@@ -65,7 +67,7 @@ class Laser:
         self.y += vel
 
     def off_screen(self, height):
-        return not(self.y <= height and self.y >= 0)
+        return not (self.y <= height and self.y >= 0)
 
     def collision(self, obj):
         return collide(self, obj)
@@ -107,6 +109,8 @@ class Ship:
     def shoot(self):
         if self.cool_down_counter == 0:
             laser = Laser(self.x, self.y, self.laser_img)
+            playerlaserSFX.set_volume(0.1)
+            playerlaserSFX.play()
             self.lasers.append(laser)
             self.cool_down_counter = 1
 
@@ -144,15 +148,17 @@ class Player(Ship):
 
     def healthbar(self, window):
         pygame.draw.rect(window, RED, (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10))
-        pygame.draw.rect(window, GREEN, (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health / self.max_health), 10))
+        pygame.draw.rect(window, GREEN, (
+        self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health / self.max_health),
+        10))
 
 
 class Enemy(Ship):
     COLOR_MAP = {
-                "red": (RED_SPACE_SHIP, RED_LASER),
-                "purple": (PURPLE_SPACE_SHIP, PURPLE_LASER),
-                "blue": (BLUE_SPACE_SHIP, BLUE_LASER)
-                }
+        "red": (RED_SPACE_SHIP, RED_LASER),
+        "purple": (PURPLE_SPACE_SHIP, PURPLE_LASER),
+        "blue": (BLUE_SPACE_SHIP, BLUE_LASER)
+    }
 
     def __init__(self, x, y, color, health=100):
         super().__init__(x, y, health)
@@ -164,7 +170,9 @@ class Enemy(Ship):
 
     def shoot(self):
         if self.cool_down_counter == 0:
-            laser = Laser(self.x-20, self.y, self.laser_img)
+            enemylaserSFX.set_volume(0.1)
+            enemylaserSFX.play()
+            laser = Laser(self.x - 20, self.y, self.laser_img)
             self.lasers.append(laser)
             self.cool_down_counter = 1
 
@@ -183,10 +191,10 @@ def main():
     main_font = pygame.font.SysFont("Arial", 25)
     lost_font = pygame.font.SysFont("Arial", 30)
 
-    #TODO implement scoring
+    # TODO implement scoring
 
     enemies = []
-    wave_length = 5 #TODO implement different wave lengths and speeds based on difficulties
+    wave_length = 5  # TODO implement different wave lengths and enemy speeds based on difficulties
     enemy_velocity = 3
 
     player_velocity = 8
@@ -202,9 +210,9 @@ def main():
     def redraw_window():
         WINDOW.blit(BG, (0, 0))
         # draw text
-        #TODO draw player score text
-        lives_text = main_font.render(f"Lives: {lives}", 1, (255,255,255))
-        level_text = main_font.render(f"Level: {level}", 1, (255,255,255))
+        # TODO draw player score text
+        lives_text = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
+        level_text = main_font.render(f"Level: {level}", 1, (255, 255, 255))
 
         WINDOW.blit(lives_text, (10, 10))
         WINDOW.blit(level_text, (WIDTH - level_text.get_width() - 10, 10))
@@ -215,8 +223,9 @@ def main():
         player.draw(WINDOW)
 
         if lost:
+            pygame.mixer.music.stop()
             lost_text = lost_font.render("Game Over!", 1, WHITE)
-            #TODO print players score and if they got a high score
+            # TODO print players score and if they got a high score
             WINDOW.blit(lost_text, (WIDTH / 2 - lost_text.get_width() / 2, 350))
 
         pygame.display.update()
@@ -239,7 +248,8 @@ def main():
             level += 1
             wave_length += 3
             for i in range(wave_length):
-                enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "purple", "blue"]))
+                enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
+                              random.choice(["red", "purple", "blue"]))
                 enemies.append(enemy)
 
         for event in pygame.event.get():
@@ -247,13 +257,13 @@ def main():
                 quit()
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] and player.x - player_velocity > 0: # left
+        if keys[pygame.K_a] and player.x - player_velocity > 0:  # left
             player.x -= player_velocity
-        if keys[pygame.K_d] and player.x + player_velocity + player.get_width() < WIDTH: # right
+        if keys[pygame.K_d] and player.x + player_velocity + player.get_width() < WIDTH:  # right
             player.x += player_velocity
-        if keys[pygame.K_w] and player.y - player_velocity > 0: # up
+        if keys[pygame.K_w] and player.y - player_velocity > 0:  # up
             player.y -= player_velocity
-        if keys[pygame.K_s] and player.y + player_velocity + player.get_height() + 15 < HEIGHT: # down
+        if keys[pygame.K_s] and player.y + player_velocity + player.get_height() + 15 < HEIGHT:  # down
             player.y += player_velocity
         if keys[pygame.K_SPACE]:
             player.shoot()
@@ -262,7 +272,7 @@ def main():
             enemy.move(enemy_velocity)
             enemy.move_lasers(laser_velocity, player)
 
-            if random.randrange(0, 2*60) == 1:
+            if random.randrange(0, 2 * 60) == 1:
                 enemy.shoot()
 
             if collide(enemy, player):
@@ -274,20 +284,21 @@ def main():
 
         player.move_lasers(-laser_velocity, enemies)
 
+
 def main_menu():
     title_font = pygame.font.SysFont("Arial", 60)
     start_font = pygame.font.SysFont("Arial", 30)
     author_font = pygame.font.SysFont("Arial", 25)
     run = True
-    mixer.music.load("Main_Menu.ogg")
+    mixer.music.load("assets/Main_Menu.ogg")
     mixer.music.set_volume(0.1)
     mixer.music.play()
     while run:
 
         WINDOW.blit(BG, (0, 0))
-        start_label = start_font.render("Press the left mouse button to begin...", 1, YELLOW)
         title_label = title_font.render("Interstellar Expedition", 1, RED)
         author_label = author_font.render("By: Gerald Monnecka", 1, BLUE)
+        start_label = start_font.render("Press the left mouse button to begin!", 1, YELLOW)
         WINDOW.blit(start_label, (WIDTH / 2 - start_label.get_width() / 2, 500))
         WINDOW.blit(title_label, (WIDTH / 2 - title_label.get_width() / 2, 200))
         WINDOW.blit(author_label, (WIDTH / 2 - author_label.get_width() / 2, 300))
@@ -297,6 +308,10 @@ def main_menu():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
+                pygame.mixer.stop()
+                mixer.music.load("assets/Game_Music.ogg")
+                mixer.music.set_volume(0.1)
+                mixer.music.play()
                 main()
     pygame.quit()
 
