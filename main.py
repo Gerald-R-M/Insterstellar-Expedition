@@ -62,7 +62,7 @@ class Laser:
 
 
 class Ship:
-    COOLDOWN = 30
+    COOLDOWN = 15
 
     def __init__(self, x, y, health=100):
         self.x = x
@@ -169,7 +169,7 @@ def main():
     run = True
     FPS = 60
     level = 0
-    lives = 5
+    lives = 3
     main_font = pygame.font.SysFont("Arial", 25)
     lost_font = pygame.font.SysFont("Arial", 30)
 
@@ -177,10 +177,10 @@ def main():
 
     enemies = []
     wave_length = 5 #TODO implement different wave lengths and speeds based on difficulties
-    enemy_velocity = 1
+    enemy_velocity = 3
 
-    player_velocity = 5
-    laser_velocity = 5
+    player_velocity = 8
+    laser_velocity = 7
 
     player = Player(300, 630)
 
@@ -194,7 +194,7 @@ def main():
         # draw text
         #TODO draw player score text
         lives_text = main_font.render(f"Lives: {lives}", 1, (255,255,255))
-        level_text = main_font.render(f"Level: {level}", 1, (255,255,255))
+        level_text = main_font.render(f"Level: {level + 1}", 1, (255,255,255))
 
         WINDOW.blit(lives_text, (10, 10))
         WINDOW.blit(level_text, (WIDTH - level_text.get_width() - 10, 10))
