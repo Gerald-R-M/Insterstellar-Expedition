@@ -11,7 +11,10 @@ import pygame
 import os
 import time
 import random
+from pygame import mixer
+
 pygame.font.init()
+
 
 WIDTH = 750
 HEIGHT = 750
@@ -23,7 +26,7 @@ RED_SPACE_SHIP = pygame.image.load(os.path.join("assets", "red_ship.png"))
 BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "blue_ship.png"))
 PURPLE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "purple_ship.png"))
 
-# Player player
+# Player image
 YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "player_ship.png"))
 
 # Lasers
@@ -35,11 +38,14 @@ YELLOW_LASER = pygame.image.load(os.path.join("assets", "yellow_laser.png"))
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background.png")), (WIDTH, HEIGHT))
 
+
 #Colors
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
+PURPLE = (230,230,250)
+YELLOW = (255,255,0)
 
 class Laser:
     def __init__(self, x, y, img):
@@ -194,7 +200,7 @@ def main():
         # draw text
         #TODO draw player score text
         lives_text = main_font.render(f"Lives: {lives}", 1, (255,255,255))
-        level_text = main_font.render(f"Level: {level + 1}", 1, (255,255,255))
+        level_text = main_font.render(f"Level: {level}", 1, (255,255,255))
 
         WINDOW.blit(lives_text, (10, 10))
         WINDOW.blit(level_text, (WIDTH - level_text.get_width() - 10, 10))
@@ -227,7 +233,7 @@ def main():
 
         if len(enemies) == 0:
             level += 1
-            wave_length += 5
+            wave_length += 3
             for i in range(wave_length):
                 enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "purple", "blue"]))
                 enemies.append(enemy)
@@ -270,10 +276,13 @@ def main_menu():
     author_font = pygame.font.SysFont("Arial", 25)
     run = True
     while run:
+        mixer.init()
+        mixer.music.load("Main_Menu.ogg")
+        mixer.music.play()
         WINDOW.blit(BG, (0, 0))
-        start_label = start_font.render("Press the mouse to begin...", 1, WHITE)
-        title_label = title_font.render("Interstellar Expedition", 1, WHITE)
-        author_label = author_font.render("By: Gerald Monnecka", 1, WHITE)
+        start_label = start_font.render("Press the left mouse button to begin...", 1, YELLOW)
+        title_label = title_font.render("Interstellar Expedition", 1, RED)
+        author_label = author_font.render("By: Gerald Monnecka", 1, BLUE)
         WINDOW.blit(start_label, (WIDTH / 2 - start_label.get_width() / 2, 500))
         WINDOW.blit(title_label, (WIDTH / 2 - title_label.get_width() / 2, 200))
         WINDOW.blit(author_label, (WIDTH / 2 - author_label.get_width() / 2, 300))
