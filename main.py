@@ -13,6 +13,8 @@ import time
 import random
 from pygame import mixer
 
+mixer.init()
+
 pygame.font.init()
 
 
@@ -38,6 +40,8 @@ YELLOW_LASER = pygame.image.load(os.path.join("assets", "yellow_laser.png"))
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background.png")), (WIDTH, HEIGHT))
 
+#Audio
+menuMusic = pygame.mixer.Sound("Main_Menu.ogg")
 
 #Colors
 RED = (255, 0, 0)
@@ -275,10 +279,11 @@ def main_menu():
     start_font = pygame.font.SysFont("Arial", 30)
     author_font = pygame.font.SysFont("Arial", 25)
     run = True
+    mixer.music.load("Main_Menu.ogg")
+    mixer.music.set_volume(0.1)
+    mixer.music.play()
     while run:
-        mixer.init()
-        mixer.music.load("Main_Menu.ogg")
-        mixer.music.play()
+
         WINDOW.blit(BG, (0, 0))
         start_label = start_font.render("Press the left mouse button to begin...", 1, YELLOW)
         title_label = title_font.render("Interstellar Expedition", 1, RED)
