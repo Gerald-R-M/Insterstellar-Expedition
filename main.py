@@ -1,11 +1,11 @@
 # -------------------------------------------Interstellar Expedition---------------------------------------------------#
 # -------------------------------------------Author: Gerald Monnecka---------------------------------------------------#
-# ------------------------------------------------Version: 0.75--------------------------------------------------------#
-# --------------Description: Move the yellow triangle with WASD and navigate your way through space!-------------------#
+# ------------------------------------------------Version: 1.00--------------------------------------------------------#
+# -----------------------Description: Move your ship with WASD and navigate your way through space!--------------------#
 # ---------------------------------------------------------------------------------------------------------------------#
-# -------------------------------What remains: Difficulty settings and obstacles.--------------------------------------#
 # ---------------------------------------------------------------------------------------------------------------------#
-# ----------------------------Implement non-placeholder art assets and sound effects-----------------------------------#
+# ---------------------------------------------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------------------------------------------------#
 
 import pygame
 import os
@@ -45,14 +45,196 @@ enemylaserSFX = pygame.mixer.Sound("assets/Sound & Music/Enemy_Laser.ogg")
 gameOverSFX = pygame.mixer.Sound("assets/Sound & Music/Game_Over.ogg")
 explosionSFX = pygame.mixer.Sound("assets/Sound & Music/Ship_Explosion.ogg")
 playerdamageSFX = pygame.mixer.Sound("assets/Sound & Music/Player_Damage.ogg")
+lostlifeSFX = pygame.mixer.Sound("assets/Sound & Music/Lost_Life.ogg")
 
 # Colors
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
-PURPLE = (230, 230, 250)
+PURPLE = (128, 0, 128)
 YELLOW = (255, 255, 0)
+DARK_GREEN = (0, 100, 0)
+DARK_YELLOW = (200, 200, 0)
+DARK_RED = (100, 0, 0)
+
+
+# Global Difficulty Variables
+lives = 0
+enemy_velocity = 1000
+points = 0
+
+
+class Button:
+    def __init__(self, color, x, y, width, height, text=''):
+        self.color = color
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+
+    def draw(self, win, outline=None):
+        # Call this method to draw the Button on the screen
+        if outline:
+            pygame.draw.rect(win, outline, (self.x - 2, self.y - 2, self.width + 4, self.height + 4), 0)
+
+        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height), 0)
+
+        if self.text != '':
+            font = pygame.font.SysFont('Arial', 60)
+            text = font.render(self.text, 1, (0, 0, 0))
+            win.blit(text, (
+                self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
+
+    def isover(self, pos):
+        # Pos is the mouse position or a tuple of (x,y) coordinates
+        if self.x < pos[0] < self.x + self.width:
+            if self.y < pos[1] < self.y + self.height:
+                return True
+
+        return False
+
+
+# Buttons
+easyButton = Button(GREEN, 50, 300, 150, 100, "Easy")
+mediumButton = Button(YELLOW, 250, 300, 250, 100, "Medium")
+hardButton = Button(RED, 550, 300, 150, 100, "Hard")
+rulesButton = Button(PURPLE, 125, 450, 500, 100, "Rules/Controls")
+playButton = Button(BLUE, 300, 600, 150, 100, "Play!")
+
+
+def easymode():
+    global lives
+    global enemy_velocity
+    global points
+    lives = 15
+    enemy_velocity = 2
+    points = 100
+    easyButton.color = DARK_GREEN
+    mediumButton.color = YELLOW
+    hardButton.color = RED
+
+
+def mediummode():
+    global lives
+    global enemy_velocity
+    global points
+    lives = 10
+    enemy_velocity = 3
+    points = 200
+    easyButton.color = GREEN
+    mediumButton.color = DARK_YELLOW
+    hardButton.color = RED
+
+
+def hardmode():
+    global lives
+    global enemy_velocity
+    global points
+    lives = 5
+    enemy_velocity = 4
+    points = 300
+    easyButton.color = GREEN
+    mediumButton.color = YELLOW
+    hardButton.color = DARK_RED
+
+
+def rulescreen():
+    rulesrun = True
+    rules_font = pygame.font.SysFont("Arial", 25)
+    rules1 = rules_font.render("You are traveling through space on an expedition when you are attacked", 1, WHITE)
+    rules2 = rules_font.render("You are traveling through space on an expedition when you are attacked", 1, WHITE)
+    while rulesrun:
+
+        WINDOW.blit(BG, (0, 0))
+
+        WINDOW.blit(rules1, (WIDTH / 2 - rules1.get_width() / 2, 175))
+        WINDOW.blit(rules2, (WIDTH / 2 - rules2.get_width() / 2, 200))
+
+
+def main_menu():
+    title_font = pygame.font.SysFont("Arial", 60)
+    author_font = pygame.font.SysFont("Arial", 25)
+    selectmode_font = pygame.font.SysFont("Arial", 45)
+    run = True
+    mixer.music.load("assets/Sound & Music/Main_Menu.ogg")
+    mixer.music.set_volume(0.1)
+    mixer.music.play()
+    modeselected = False
+    while run:
+
+        WINDOW.blit(BG, (0, 0))
+        title_label = title_font.render("Interstellar Expedition", 1, RED)
+        author_label = author_font.render("By: Gerald Monnecka", 1, BLUE)
+        selectmode_label = selectmode_font.render("Select a Difficulty!", 1, WHITE)
+        easyButton.draw(WINDOW, WHITE)
+        mediumButton.draw(WINDOW, WHITE)
+        hardButton.draw(WINDOW, WHITE)
+        rulesButton.draw(WINDOW, WHITE)
+        if modeselected:
+            playButton.draw(WINDOW, WHITE)
+        else:
+            WINDOW.blit(selectmode_label, (WIDTH / 2 - selectmode_label.get_width() / 2, 600))
+        WINDOW.blit(title_label, (WIDTH / 2 - title_label.get_width() / 2, 100))
+        WINDOW.blit(author_label, (WIDTH / 2 - author_label.get_width() / 2, 200))
+
+        pygame.display.update()
+        for event in pygame.event.get():
+            pos = pygame.mouse.get_pos();
+            if event.type == pygame.QUIT:
+                run = False
+
+            if easyButton.isover(pos):
+                easyButton.color = WHITE
+            else:
+                if lives != 15:
+                    easyButton.color = GREEN
+                else:
+                    easyButton.color = DARK_GREEN
+            if mediumButton.isover(pos):
+                mediumButton.color = WHITE
+            else:
+                if lives != 10:
+                    mediumButton.color = YELLOW
+                else:
+                    mediumButton.color = DARK_YELLOW
+            if hardButton.isover(pos):
+                hardButton.color = WHITE
+            else:
+                if lives != 5:
+                    hardButton.color = RED
+                else:
+                    hardButton.color = DARK_RED
+            if rulesButton.isover(pos):
+                rulesButton.color = WHITE
+            else:
+                rulesButton.color = PURPLE
+            if playButton.isover(pos):
+                playButton.color = WHITE
+            else:
+                playButton.color = BLUE
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if easyButton.isover(pos):
+                    easymode()
+                    modeselected = True
+                if mediumButton.isover(pos):
+                    mediummode()
+                    modeselected = True
+                if hardButton.isover(pos):
+                    hardmode()
+                    modeselected = True
+                if rulesButton.isover(pos):
+                    rulescreen()
+                if playButton.isover(pos):
+                    pygame.mixer.stop()
+                    mixer.music.load("assets/Sound & Music/Game_Music.ogg")
+                    mixer.music.set_volume(0.1)
+                    mixer.music.play()
+                    main()
+
+    pygame.quit()
 
 
 class Laser:
@@ -69,7 +251,7 @@ class Laser:
         self.y += vel
 
     def off_screen(self, height):
-        return not (self.y <= height and self.y >= 0)
+        return not (height >= self.y >= 0)
 
     def collision(self, obj):
         return collide(self, obj)
@@ -231,7 +413,7 @@ def main():
     run = True
     FPS = 60
     level = 0
-    lives = 3
+
     main_font = pygame.font.SysFont("Arial", 25)
     lost_font = pygame.font.SysFont("Arial", 30)
 
@@ -239,10 +421,9 @@ def main():
 
     enemies = []
     wave_length = 5  # TODO implement different wave lengths and enemy speeds based on difficulties
-    enemy_velocity = 3
 
-    player_velocity = 8
-    laser_velocity = 7
+    player_velocity = 9
+    laser_velocity = 9
 
     player = Player(300, 630)
 
@@ -255,6 +436,7 @@ def main():
         WINDOW.blit(BG, (0, 0))
         # draw text
         # TODO draw player score text
+        global lives
         lives_text = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
         level_text = main_font.render(f"Level: {level}", 1, (255, 255, 255))
 
@@ -280,7 +462,7 @@ def main():
     while run:
         clock.tick(FPS)
         redraw_window()
-
+        global lives
         if lives <= 0 or player.health <= 0:
             lost = True
             lost_count += 1
@@ -329,47 +511,19 @@ def main():
 
             if collide(enemy, player):
                 player.health -= 10
-                enemydeath = Explosion(enemy.x + enemy.get_width()/2, enemy.y + enemy.get_height()/2)
+                enemydeath = Explosion(enemy.x + enemy.get_width() / 2, enemy.y + enemy.get_height() / 2)
                 explosion_group.add(enemydeath)
                 explosionSFX.set_volume(0.5)
                 explosionSFX.play()
                 enemies.remove(enemy)
             elif enemy.y + enemy.get_height() > HEIGHT:
                 lives -= 1
+                lostlifeSFX.set_volume(0.1)
+                lostlifeSFX.play()
                 enemies.remove(enemy)
 
         player.move_lasers(-laser_velocity, enemies)
 
-
-def main_menu():
-    title_font = pygame.font.SysFont("Arial", 60)
-    start_font = pygame.font.SysFont("Arial", 30)
-    author_font = pygame.font.SysFont("Arial", 25)
-    run = True
-    mixer.music.load("assets/Sound & Music/Main_Menu.ogg")
-    mixer.music.set_volume(0.1)
-    mixer.music.play()
-    while run:
-
-        WINDOW.blit(BG, (0, 0))
-        title_label = title_font.render("Interstellar Expedition", 1, RED)
-        author_label = author_font.render("By: Gerald Monnecka", 1, BLUE)
-        start_label = start_font.render("Press the left mouse button to begin!", 1, YELLOW)
-        WINDOW.blit(start_label, (WIDTH / 2 - start_label.get_width() / 2, 500))
-        WINDOW.blit(title_label, (WIDTH / 2 - title_label.get_width() / 2, 200))
-        WINDOW.blit(author_label, (WIDTH / 2 - author_label.get_width() / 2, 300))
-
-        pygame.display.update()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pygame.mixer.stop()
-                mixer.music.load("assets/Sound & Music/Game_Music.ogg")
-                mixer.music.set_volume(0.1)
-                mixer.music.play()
-                main()
-    pygame.quit()
 
 
 main_menu()
