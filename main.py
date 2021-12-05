@@ -169,7 +169,7 @@ class Enemy(Ship):
         self.y += vel
 
     def shoot(self):
-        if self.cool_down_counter == 0:
+        if self.cool_down_counter == 0 and self.y > 0:
             enemylaserSFX.set_volume(0.1)
             enemylaserSFX.play()
             laser = Laser(self.x - 20, self.y, self.laser_img)
@@ -217,8 +217,8 @@ def main():
         WINDOW.blit(lives_text, (10, 10))
         WINDOW.blit(level_text, (WIDTH - level_text.get_width() - 10, 10))
 
-        for enemy in enemies:
-            enemy.draw(WINDOW)
+        for enemyobjs in enemies:
+            enemyobjs.draw(WINDOW)
 
         player.draw(WINDOW)
 
@@ -251,6 +251,11 @@ def main():
                 enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                               random.choice(["red", "purple", "blue"]))
                 enemies.append(enemy)
+
+                for enemy in enemies:
+                    for enemy1 in enemies:
+                        if collide(enemy, enemy1):
+                            enemy.y -= 5
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
