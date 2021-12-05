@@ -23,26 +23,28 @@ WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Interstellar Expedition")
 
 # Load images
-RED_SPACE_SHIP = pygame.image.load(os.path.join("assets", "red_ship.png"))
-BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "blue_ship.png"))
-PURPLE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "purple_ship.png"))
+RED_SPACE_SHIP = pygame.image.load(os.path.join("assets/art/red_ship.png"))
+BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets/art/blue_ship.png"))
+PURPLE_SPACE_SHIP = pygame.image.load(os.path.join("assets/art/purple_ship.png"))
 
 # Player image
-YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "player_ship.png"))
+YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets/art/player_ship.png"))
 
 # Lasers
-RED_LASER = pygame.image.load(os.path.join("assets", "red_laser.png"))
-PURPLE_LASER = pygame.image.load(os.path.join("assets", "purple_laser.png"))
-BLUE_LASER = pygame.image.load(os.path.join("assets", "blue_laser.png"))
-YELLOW_LASER = pygame.image.load(os.path.join("assets", "yellow_laser.png"))
+RED_LASER = pygame.image.load(os.path.join("assets/art/red_laser.png"))
+PURPLE_LASER = pygame.image.load(os.path.join("assets/art/purple_laser.png"))
+BLUE_LASER = pygame.image.load(os.path.join("assets/art/blue_laser.png"))
+YELLOW_LASER = pygame.image.load(os.path.join("assets/art/yellow_laser.png"))
 
 # Background
-BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background.png")), (WIDTH, HEIGHT))
+BG = pygame.transform.scale(pygame.image.load(os.path.join("assets/art/background.png")), (WIDTH, HEIGHT))
 
 # Audio
-playerlaserSFX = pygame.mixer.Sound("assets/Player_Laser.ogg")
-enemylaserSFX = pygame.mixer.Sound("assets/Enemy_Laser.ogg")
-gameOverSFX = pygame.mixer.Sound("assets/Game_Over.ogg")
+playerlaserSFX = pygame.mixer.Sound("assets/Sound & Music/Player_Laser.ogg")
+enemylaserSFX = pygame.mixer.Sound("assets/Sound & Music/Enemy_Laser.ogg")
+gameOverSFX = pygame.mixer.Sound("assets/Sound & Music/Game_Over.ogg")
+explosionSFX = pygame.mixer.Sound("assets/Sound & Music/Ship_Explosion.ogg")
+playerdamageSFX = pygame.mixer.Sound("assets/Sound & Music/Player_Damage.ogg")
 
 # Colors
 RED = (255, 0, 0)
@@ -98,6 +100,9 @@ class Ship:
                 self.lasers.remove(laser)
             elif laser.collision(obj):
                 obj.health -= 10
+                if obj.health > 0:
+                    playerdamageSFX.set_volume(0.1)
+                    playerdamageSFX.play()
                 self.lasers.remove(laser)
 
     def cooldown(self):
@@ -138,6 +143,10 @@ class Player(Ship):
             else:
                 for obj in objects:
                     if laser.collision(obj):
+                        objdeath = Explosion(obj.x + obj.get_width() / 2, obj.y + obj.get_height() / 2)
+                        explosion_group.add(objdeath)
+                        explosionSFX.set_volume(0.5)
+                        explosionSFX.play()
                         objects.remove(obj)
                         if laser in self.lasers:
                             self.lasers.remove(laser)
@@ -182,8 +191,9 @@ class Explosion(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.images = []
+
         for num in range(1, 6):
-            img = pygame.image.load(f"assets/exp{num}.png")
+            img = pygame.image.load(f"assets/art/exp{num}.png")
             img = pygame.transform.scale(img, (100, 100))
             self.images.append(img)
         self.index = 0
@@ -193,6 +203,7 @@ class Explosion(pygame.sprite.Sprite):
         self.counter = 0
 
     def update(self):
+
         explosion_speed = 4
         # update explosion animation
         self.counter += 1
@@ -261,6 +272,9 @@ def main():
             # TODO print players score and if they got a high score
             WINDOW.blit(lost_text, (WIDTH / 2 - lost_text.get_width() / 2, 350))
 
+        explosion_group.draw(WINDOW)
+        explosion_group.update()
+
         pygame.display.update()
 
     while run:
@@ -315,9 +329,11 @@ def main():
 
             if collide(enemy, player):
                 player.health -= 10
-                Explosion(enemy.x, enemy.y)
+                enemydeath = Explosion(enemy.x + enemy.get_width()/2, enemy.y + enemy.get_height()/2)
+                explosion_group.add(enemydeath)
+                explosionSFX.set_volume(0.5)
+                explosionSFX.play()
                 enemies.remove(enemy)
-                # TODO feedback for enemy and palyer collison
             elif enemy.y + enemy.get_height() > HEIGHT:
                 lives -= 1
                 enemies.remove(enemy)
@@ -330,7 +346,7 @@ def main_menu():
     start_font = pygame.font.SysFont("Arial", 30)
     author_font = pygame.font.SysFont("Arial", 25)
     run = True
-    mixer.music.load("assets/Main_Menu.ogg")
+    mixer.music.load("assets/Sound & Music/Main_Menu.ogg")
     mixer.music.set_volume(0.1)
     mixer.music.play()
     while run:
@@ -349,7 +365,7 @@ def main_menu():
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pygame.mixer.stop()
-                mixer.music.load("assets/Game_Music.ogg")
+                mixer.music.load("assets/Sound & Music/Game_Music.ogg")
                 mixer.music.set_volume(0.1)
                 mixer.music.play()
                 main()
