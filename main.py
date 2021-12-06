@@ -231,6 +231,13 @@ def main_menu():
         author_label = author_font.render("By: Gerald Monnecka", 1, BLUE)
         selectmode_label = selectmode_font.render("Select a Difficulty!", 1,
                                                   WHITE)
+        if difficulty == 0:
+            easyButton.color == DARK_GREEN
+        if difficulty == 1:
+            mediumButton.color == DARK_YELLOW
+        if difficulty == 2:
+            hardButton.color == DARK_RED
+
         easyButton.draw(WINDOW, WHITE)
         mediumButton.draw(WINDOW, WHITE)
         hardButton.draw(WINDOW, WHITE)
@@ -254,21 +261,21 @@ def main_menu():
             if easyButton.isover(pos):
                 easyButton.color = WHITE
             else:
-                if lives != 15:
+                if difficulty != 0:
                     easyButton.color = GREEN
                 else:
                     easyButton.color = DARK_GREEN
             if mediumButton.isover(pos):
                 mediumButton.color = WHITE
             else:
-                if lives != 10:
+                if difficulty != 1:
                     mediumButton.color = YELLOW
                 else:
                     mediumButton.color = DARK_YELLOW
             if hardButton.isover(pos):
                 hardButton.color = WHITE
             else:
-                if lives != 5:
+                if difficulty != 2:
                     hardButton.color = RED
                 else:
                     hardButton.color = DARK_RED
@@ -310,6 +317,9 @@ def main_menu():
                     elif difficulty == 2:
                         lives = 5
                         points = 300
+                    if not firsttry:
+                        global newscore
+                        newscore = False
                     main()
 
     pygame.quit()
@@ -589,8 +599,9 @@ def main():
 
                 for enemy in enemies:
                     for enemy1 in enemies:
-                        if collide(enemy, enemy1):
-                            enemy.y -= 5
+                        if not collide(enemy, enemy1):
+                            while collide(enemy, enemy1):
+                                enemy.y -= 30
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
