@@ -63,7 +63,15 @@ DARK_RED = (100, 0, 0)
 lives = 0
 enemy_velocity = 1000
 points = 0
-
+# Score tracking variables
+score = 0
+highscore = 0
+# Variable to track if the game has been run once before in the current session
+firsttry = True
+# Variable to track if the player has beaten their previous high score
+newscore = False
+# Variable to track which difficulty the player has selected for repeat playthroughs
+difficulty = -1 # default: -1, easy: 0, medium: 1, hard: 2
 
 class Button:
     def __init__(self, color, x, y, width, height, text=''):
@@ -97,17 +105,19 @@ class Button:
 
 
 # Buttons
-easyButton = Button(GREEN, 50, 300, 150, 100, "Easy")
-mediumButton = Button(YELLOW, 250, 300, 250, 100, "Medium")
-hardButton = Button(RED, 550, 300, 150, 100, "Hard")
-rulesButton = Button(PURPLE, 125, 450, 500, 100, "Rules/Controls")
+easyButton = Button(GREEN, 50, 450, 150, 100, "Easy")
+mediumButton = Button(YELLOW, 250, 450, 250, 100, "Medium")
+hardButton = Button(RED, 550, 450, 150, 100, "Hard")
+rulesButton = Button(PURPLE, 125, 300, 500, 100, "Rules/Controls")
 playButton = Button(BLUE, 300, 600, 150, 100, "Play!")
-
+backButton = Button(PURPLE, 75, 600, 600, 75, "Back to Main Menu")
 
 def easymode():
     global lives
     global enemy_velocity
     global points
+    global difficulty
+    difficulty = 0
     lives = 15
     enemy_velocity = 2
     points = 100
@@ -120,6 +130,8 @@ def mediummode():
     global lives
     global enemy_velocity
     global points
+    global difficulty
+    difficulty = 1
     lives = 10
     enemy_velocity = 3
     points = 200
@@ -132,6 +144,8 @@ def hardmode():
     global lives
     global enemy_velocity
     global points
+    global difficulty
+    difficulty = 2
     lives = 5
     enemy_velocity = 4
     points = 300
@@ -141,16 +155,53 @@ def hardmode():
 
 
 def rulescreen():
-    rulesrun = True
+    run = True
     rules_font = pygame.font.SysFont("Arial", 25)
-    rules1 = rules_font.render("You are traveling through space on an expedition when you are attacked", 1, WHITE)
-    rules2 = rules_font.render("You are traveling through space on an expedition when you are attacked", 1, WHITE)
-    while rulesrun:
+    rules1 = rules_font.render("You are traveling through space on an expedition when you", 1, WHITE)
+    rules2 = rules_font.render("are suddenly under attack from alien lifeforms!", 1, WHITE)
+    rules3 = rules_font.render("Take them down without letting too many get past you", 1, WHITE)
+    rules4 = rules_font.render("and fly to take over your home planet!", 1, WHITE)
+    rules5 = rules_font.render("Use WASD to move your ship!", 1, YELLOW)
+    rules6 = rules_font.render("Press the space bar to fire!", 1, YELLOW)
+    rules7 = rules_font.render("Watch out for enemy fire if you lose too much health you'll lose!", 1, RED)
+    rules8 = rules_font.render("Letting enemies get past you will cost you lives", 1, RED)
+    rules9 = rules_font.render("if you run out of lives you lose!", 1, RED)
+    rules10 = rules_font.render("Aim to get the high score! You earn more points by", 1, BLUE)
+    rules11 = rules_font.render("shooting down ships! The higher the difficulty", 1, BLUE)
+    rules12 = rules_font.render("the more points you earn!", 1, BLUE)
+
+
+    while run:
 
         WINDOW.blit(BG, (0, 0))
+        WINDOW.blit(rules1, (WIDTH / 2 - rules1.get_width() / 2, 100))
+        WINDOW.blit(rules2, (WIDTH / 2 - rules2.get_width() / 2, 125))
+        WINDOW.blit(rules3, (WIDTH / 2 - rules3.get_width() / 2, 175))
+        WINDOW.blit(rules4, (WIDTH / 2 - rules4.get_width() / 2, 200))
+        WINDOW.blit(rules5, (WIDTH / 2 - rules5.get_width() / 2, 250))
+        WINDOW.blit(rules6, (WIDTH / 2 - rules6.get_width() / 2, 275))
+        WINDOW.blit(rules7, (WIDTH / 2 - rules7.get_width() / 2, 325))
+        WINDOW.blit(rules8, (WIDTH / 2 - rules8.get_width() / 2, 350))
+        WINDOW.blit(rules9, (WIDTH / 2 - rules9.get_width() / 2, 375))
+        WINDOW.blit(rules10, (WIDTH / 2 - rules10.get_width() / 2, 425))
+        WINDOW.blit(rules11, (WIDTH / 2 - rules11.get_width() / 2, 450))
+        WINDOW.blit(rules12, (WIDTH / 2 - rules12.get_width() / 2, 475))
 
-        WINDOW.blit(rules1, (WIDTH / 2 - rules1.get_width() / 2, 175))
-        WINDOW.blit(rules2, (WIDTH / 2 - rules2.get_width() / 2, 200))
+        backButton.draw(WINDOW, WHITE)
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            pos = pygame.mouse.get_pos()
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if backButton.isover(pos):
+                backButton.color = WHITE
+            else:
+                backButton.color = PURPLE
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if backButton.isover(pos):
+                    run = False
 
 
 def main_menu():
@@ -181,10 +232,10 @@ def main_menu():
 
         pygame.display.update()
         for event in pygame.event.get():
-            pos = pygame.mouse.get_pos();
+            pos = pygame.mouse.get_pos()
             if event.type == pygame.QUIT:
                 run = False
-
+            global lives
             if easyButton.isover(pos):
                 easyButton.color = WHITE
             else:
@@ -232,6 +283,18 @@ def main_menu():
                     mixer.music.load("assets/Sound & Music/Game_Music.ogg")
                     mixer.music.set_volume(0.1)
                     mixer.music.play()
+                    global score
+                    score = 0
+                    global points
+                    if difficulty == 0:
+                        lives = 15
+                        points = 100
+                    elif difficulty == 1:
+                        lives = 10
+                        points = 200
+                    elif difficulty == 2:
+                        lives = 5
+                        points = 300
                     main()
 
     pygame.quit()
@@ -330,6 +393,13 @@ class Player(Ship):
                         explosionSFX.set_volume(0.5)
                         explosionSFX.play()
                         objects.remove(obj)
+                        global score
+                        score += points
+                        global highscore
+                        if score > highscore:
+                            highscore = score
+                            global newscore
+                            newscore = True
                         if laser in self.lasers:
                             self.lasers.remove(laser)
 
@@ -413,14 +483,12 @@ def main():
     run = True
     FPS = 60
     level = 0
-
     main_font = pygame.font.SysFont("Arial", 25)
-    lost_font = pygame.font.SysFont("Arial", 30)
-
-    # TODO implement scoring
-
+    lost_font = pygame.font.SysFont("Arial", 60)
+    final_font = pygame.font.SysFont("Arial", 30)
+    new_font = pygame.font.SysFont("Arial", 40)
     enemies = []
-    wave_length = 5  # TODO implement different wave lengths and enemy speeds based on difficulties
+    wave_length = 5
 
     player_velocity = 9
     laser_velocity = 9
@@ -434,14 +502,19 @@ def main():
 
     def redraw_window():
         WINDOW.blit(BG, (0, 0))
-        # draw text
-        # TODO draw player score text
         global lives
-        lives_text = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
-        level_text = main_font.render(f"Level: {level}", 1, (255, 255, 255))
-
+        lives_text = main_font.render(f"Lives: {lives}", 1, WHITE)
+        level_text = main_font.render(f"Level: {level}", 1, WHITE)
+        score_text = main_font.render(f"Score: {score}", 1, WHITE)
+        high_text = main_font.render(f"High Score: {highscore}", 1, WHITE)
         WINDOW.blit(lives_text, (10, 10))
         WINDOW.blit(level_text, (WIDTH - level_text.get_width() - 10, 10))
+        WINDOW.blit(score_text, (10, 40))
+        if not firsttry:
+            WINDOW.blit(high_text, (10, 70))
+            if newscore:
+                high_text = main_font.render(f"High Score: {highscore}", 1, YELLOW)
+                WINDOW.blit(high_text, (10, 70))
 
         for enemyobjs in enemies:
             enemyobjs.draw(WINDOW)
@@ -451,8 +524,12 @@ def main():
         if lost:
             pygame.mixer.music.stop()
             lost_text = lost_font.render("Game Over!", 1, WHITE)
-            # TODO print players score and if they got a high score
-            WINDOW.blit(lost_text, (WIDTH / 2 - lost_text.get_width() / 2, 350))
+            final_text = final_font.render(f"Your final score was: {score} points",1,WHITE)
+            new_text = new_font.render(f"Your new high score is: {highscore}!",1,YELLOW)
+            WINDOW.blit(lost_text, (WIDTH / 2 - lost_text.get_width() / 2, 200))
+            WINDOW.blit(final_text, (WIDTH / 2 - final_text.get_width() / 2, 300))
+            if newscore and not firsttry:
+                WINDOW.blit(new_text, (WIDTH / 2 - new_text.get_width() / 2, 400))
 
         explosion_group.draw(WINDOW)
         explosion_group.update()
@@ -469,6 +546,8 @@ def main():
 
         if lost:
             if lost_count > FPS * 3:
+                global firsttry
+                firsttry = False
                 run = False
             else:
                 continue
